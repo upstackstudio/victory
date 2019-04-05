@@ -17,6 +17,7 @@ import {
 import Helpers from "./helpers";
 import Collection from "./collection";
 import Scale from "./scale";
+import Domain from "./domain";
 import Immutable from "./immutable";
 
 // Private Functions
@@ -62,6 +63,18 @@ function sortData(dataset, sortKey, sortOrder = "ascending") {
   return orderBy(dataset, sortKey, order);
 }
 
+function withinDomain(datum, props) {
+  const within = (axis) => {
+    const domain = Domain.getDomainFromProps(props, axis);
+    if (!domain) {
+      return true;
+    }
+    const val = datum[`_${axis}`];
+    return val <= Collection.getMaxValue(domain) && val >= Collection.getMinValue(domain);
+  }
+  return within("x") && within("y");
+}
+
 // This method will remove data points that break certain scales. (log scale only)
 function cleanData(dataset, props) {
   const smallNumber = 1 / Number.MAX_SAFE_INTEGER;
@@ -83,12 +96,19 @@ function cleanData(dataset, props) {
     return assign({}, datum, { _x, _y, _y0 });
   };
 
-  return dataset.map((datum) => {
-    if (rules(datum, "x") && rules(datum, "y") && rules(datum, "y0")) {
-      return datum;
+  let index = 0;
+  return dataset.reduce((memo, datum) => {
+    const d = rules(datum, "x") && rules(datum, "y") && rules(datum, "y0")
+       ? datum
+       : sanitize(datum);
+
+    if (!withinDomain(datum, props)) {
+      return memo;
     }
-    return sanitize(datum);
-  });
+    memo[index] = d;
+    index ++;
+    return memo;
+  }, []);
 }
 
 // Returns a data accessor given an eventKey prop
