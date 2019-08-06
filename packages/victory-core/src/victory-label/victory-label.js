@@ -78,8 +78,8 @@ export default class VictoryLabel extends React.Component {
 
   static defaultProps = {
     direction: "inherit",
-    textComponent: <Text />,
-    tspanComponent: <TSpan />,
+    textComponent: <text />,
+    tspanComponent: <tspan />,
     capHeight: 0.71, // Magic number from d3.
     lineHeight: 1
   };
@@ -216,7 +216,7 @@ export default class VictoryLabel extends React.Component {
         dy: i && !inline ? currentLineHeight * fontSize : undefined,
         textAnchor: currentStyle.textAnchor || textAnchor,
         style: currentStyle,
-        content: line
+        children: line
       };
       return React.cloneElement(props.tspanComponent, tspanProps);
     });
@@ -228,7 +228,7 @@ export default class VictoryLabel extends React.Component {
         dy,
         x,
         y,
-        events,
+        ...events,
         transform,
         className,
         title,
